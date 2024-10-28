@@ -1,6 +1,5 @@
 # rickgl demo
-
-A cross-compatible OpenGL demo
+A cross-compilable OpenGL demo for x86_64 Windows and GNU/Linux
 
 ## Compile to linux x86_64
 ```sh
