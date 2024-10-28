@@ -10,8 +10,6 @@ set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build static library")
-add_compile_options(-mwindows)
-add_link_options(-mwindows)
 
 FetchContent_MakeAvailable(glfw)
 FetchContent_MakeAvailable(glad)
