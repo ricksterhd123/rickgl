@@ -88,16 +88,6 @@ int main(void)
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3* sizeof(float)));
     glEnableVertexAttribArray(1);
 
-    // note that this is allowed, the call to glVertexAttribPointer registered VBO as the vertex attribute's bound vertex buffer object so afterwards we can safely unbind
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-    // remember: do NOT unbind the EBO while a VAO is active as the bound element buffer object IS stored in the VAO; keep the EBO bound.
-    // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-    // You can unbind the VAO afterwards so other VAO calls won't accidentally modify this VAO, but this rarely happens. Modifying other
-    // VAOs requires a call to glBindVertexArray anyways so we generally don't unbind VAOs (nor VBOs) when it's not directly necessary.
-    glBindVertexArray(0);
-
     // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     use_shader(shader);
 
@@ -105,6 +95,7 @@ int main(void)
     {
         float tickCount = get_tick_count();
         shader_set_float(shader, "gTime", tickCount);
+        printf("%f\n", tickCount);
 
         processInput(window);
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
