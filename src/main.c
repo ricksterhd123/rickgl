@@ -95,7 +95,6 @@ int main(void)
     {
         float tickCount = get_tick_count();
         shader_set_float(shader, "gTime", tickCount);
-        printf("%f\n", tickCount);
 
         processInput(window);
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
