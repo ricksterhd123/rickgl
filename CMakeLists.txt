@@ -15,9 +15,7 @@ FetchContent_MakeAvailable(glfw)
 FetchContent_MakeAvailable(glad)
 
 # Setup assets
-set(SOURCE_ASSETS_DIR "${CMAKE_SOURCE_DIR}/assets")
-set(OUTPUT_ASSETS_DIR "${CMAKE_BINARY_DIR}/assets")
-file(COPY "${SOURCE_ASSETS_DIR}" DESTINATION "${OUTPUT_ASSETS_DIR}")
+file(COPY "${CMAKE_SOURCE_DIR}/assets" DESTINATION "${CMAKE_BINARY_DIR}")
 
 # Setup executable
 add_executable(${PROJECT_NAME} "src/main.c")

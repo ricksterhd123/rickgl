@@ -12,10 +12,13 @@ char* read_file(const char* path) {
         fseek(f, 0, SEEK_END);
         length = ftell(f);
         fseek(f, 0, SEEK_SET);
-        buffer = (char*) malloc(length);
+
+        buffer = (char*) calloc(length + 1, sizeof(char));
         if (buffer != NULL) {
-            fread(buffer, 1, length, f);
+            fread(buffer, sizeof(char), length, f);
+            buffer[length + 1] = '\0';
         }
+
         fclose(f);
         return buffer;
     }
