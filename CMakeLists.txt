@@ -14,6 +14,11 @@ set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build static library")
 FetchContent_MakeAvailable(glfw)
 FetchContent_MakeAvailable(glad)
 
+# Setup assets
+set(SOURCE_ASSETS_DIR "${CMAKE_SOURCE_DIR}/assets")
+set(OUTPUT_ASSETS_DIR "${CMAKE_BINARY_DIR}/assets")
+file(COPY "${SOURCE_ASSETS_DIR}" DESTINATION "${OUTPUT_ASSETS_DIR}")
+
 # Setup executable
 add_executable(${PROJECT_NAME} "src/main.c")
 target_include_directories(${PROJECT_NAME} PUBLIC "src")
