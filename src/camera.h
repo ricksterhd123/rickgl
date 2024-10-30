@@ -14,11 +14,11 @@ typedef struct Camera
 } Camera;
 
 void update_camera(Camera* camera) {
-    glm_perspective(camera->fovy, camera->aspect, camera->nearZ, camera->farZ, camera->projection);
+    glm_perspective(camera->fovy, camera->aspect, camera->nearZ, camera->farZ, (vec4*) camera->projection);
 }
 
 vec3* get_camera_position(Camera* camera) {
-    return camera->view[3];
+    return (vec3*) camera->view[3];
 }
 
 void set_camera_view(Camera* camera, vec3 position, vec3 lookAt)
@@ -29,7 +29,7 @@ void set_camera_view(Camera* camera, vec3 position, vec3 lookAt)
     glm_vec3_add(position, center, center);
     vec3 up = {0, 1.0f, 0};
 
-    glm_lookat(position, center, up, camera->view);
+    glm_lookat(position, center, up, (vec4*) camera->view);
 }
 
 Camera* init_camera(vec3 position, vec3 lookAt, float fovy, float aspect, float nearZ, float farZ)
@@ -39,8 +39,8 @@ Camera* init_camera(vec3 position, vec3 lookAt, float fovy, float aspect, float 
     camera->projection = (mat4*) malloc(sizeof(mat4));
     camera->view = (mat4*) malloc(sizeof(mat4));
 
-    glm_mat4_identity(camera->projection);
-    glm_mat4_identity(camera->view);
+    glm_mat4_identity((vec4*) camera->projection);
+    glm_mat4_identity((vec4*) camera->view);
 
     camera->fovy = fovy;
     camera->aspect = aspect;
