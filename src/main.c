@@ -8,20 +8,40 @@
 #include "camera.h"
 #include "tick.h"
 
-const unsigned int SCR_WIDTH = 800;
-const unsigned int SCR_HEIGHT = 600;
+const unsigned int SCR_WIDTH = 640;
+const unsigned int SCR_HEIGHT = 480;
+
+Camera *camera;
+float yaw = -90.0f;
+float pitch = 0.0f;
+float fov = 45.0f;
+float distance = 5;
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height)
 {
     glViewport(0, 0, width, height);
+    if (camera != NULL)
+    {
+        camera->aspect = (float)width / (float)height;
+    }
+}
+
+void scroll_callback(GLFWwindow *window, double xoffset, double yoffset)
+{
+    distance += yoffset * 0.5f;
+
+    if (distance < 2)
+    {
+        distance = 2;
+    }
+    if (distance > 10)
+    {
+        distance = 10;
+    }
 }
 
 double lastxpos = 0;
 double lastypos = 0;
-
-float yaw = -90.0f; // yaw is initialized to -90.0 degrees since a yaw of 0.0 results in a direction vector pointing to the right so we initially rotate a bit to the left.
-float pitch = 0.0f;
-float fov = 45.0f;
 
 void process_input(GLFWwindow *window)
 {
@@ -40,13 +60,6 @@ void process_input(GLFWwindow *window)
     yaw += xpos * sensitivity;
     pitch += ypos * sensitivity;
 
-    if (pitch > 89.0f)
-        pitch = 89.0f;
-    if (pitch < -89.0f)
-        pitch = -89.0f;
-
-    printf("%f, %f\n", yaw, pitch);
-
     lastxpos = xtpos;
     lastypos = ytpos;
 }
@@ -61,6 +74,7 @@ int main(void)
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_SAMPLES, 4);
 
     window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "rickgl demo", NULL, NULL);
     if (!window)
@@ -71,24 +85,26 @@ int main(void)
     }
 
     glfwMakeContextCurrent(window);
-
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
         fprintf(stderr, "Failed to initialize GLAD\n");
         return -1;
     }
 
-    glEnable(GL_DEPTH_TEST);
     glfwSwapInterval(1);
-    glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    glfwSetScrollCallback(window, scroll_callback);
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+
+    glEnable(GL_MULTISAMPLE);
+    glEnable(GL_DEPTH_TEST);
+    glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
 
     Shader *shader = load_shader(
         "assets/shaders/shader_vert.vs",
         "assets/shaders/shader_frag.fs");
 
-    /////////////////////////////////////////
-
+    // ------------------------------------------------------------------
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
     float vertices[] = {
@@ -133,6 +149,7 @@ int main(void)
         0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
         -0.5f, 0.5f, 0.5f, 0.0f, 0.0f,
         -0.5f, 0.5f, -0.5f, 0.0f, 1.0f};
+
     unsigned int VBO, VAO;
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
@@ -142,10 +159,9 @@ int main(void)
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-    // position attribute
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)0);
     glEnableVertexAttribArray(0);
-    // texture coord attribute
+
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
 
@@ -162,34 +178,40 @@ int main(void)
 
     vec3 cameraPosition = {0, 0, -3.0f};
     vec3 cameraLookAt = {0, 0, 0};
-    Camera *camera = init_camera(cameraPosition, cameraLookAt, fov, (float)SCR_WIDTH / (float)SCR_HEIGHT, 1.0, 100.0f);
+    camera = init_camera(cameraPosition, cameraLookAt, fov, (float)SCR_WIDTH / (float)SCR_HEIGHT, 1.0, 100.0f);
 
     mat4 model;
     glm_mat4_identity(model);
-    // glm_rotate(model, glm_rad(-55.0f), (vec3){1.0f, 0.0f, 0.0f});
 
     // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
     while (!glfwWindowShouldClose(window))
     {
+        // Update camera position
+        vec3 offset = {distance * cos(yaw) * sin(pitch), distance * cos(pitch), distance * sin(yaw) * sin(pitch)};
+        set_camera_view(camera, offset, cameraLookAt);
+        update_camera(camera);
+
+        // Update shader values
         float tickCount = get_tick_count();
         shader_set_float(shader, "gTime", tickCount);
         shader_set_mat4(shader, "model", (float *)model);
         shader_set_mat4(shader, "view", (float *)camera->view);
         shader_set_mat4(shader, "projection", (float *)camera->projection);
 
+        // Process input
         process_input(window);
 
-        vec3 offset = {sin(yaw) * 2.0f, pitch, cos(yaw) * 2.0f};
-        set_camera_view(camera, offset, cameraLookAt);
-
-        update_camera(camera);
+        // Clear scene
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        // Set texture & shader
         use_texture(texture1);
         use_texture(texture2);
-
         use_shader(shader);
+
+        // Draw model
         glBindVertexArray(VAO);
         glDrawArrays(GL_TRIANGLES, 0, 36);
 
