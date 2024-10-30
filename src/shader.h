@@ -84,17 +84,21 @@ void destroy_shader(Shader *shader)
     glDeleteProgram(shader->id);
 }
 
-void shader_set_int(Shader *shader, const char *name, int value)
+void shader_set_int(Shader *shader, const char *name, const int value)
 {
     glUniform1i(glGetUniformLocation(shader->id, name), value);
 }
 
-void shader_set_bool(Shader *shader, const char *name, int value)
+void shader_set_bool(Shader *shader, const char *name, const int value)
 {
     glUniform1i(glGetUniformLocation(shader->id, name), value);
 }
 
-void shader_set_float(Shader *shader, const char *name, float value)
+void shader_set_float(Shader *shader, const char *name, const float value)
 {
     glUniform1f(glGetUniformLocation(shader->id, name), value);
+}
+
+void shader_set_mat4(Shader *shader, const char *name, const GLfloat *value) {
+    glUniformMatrix4fv(glGetUniformLocation(shader->id, name), 1, GL_FALSE, value);
 }

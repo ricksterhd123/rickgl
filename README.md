@@ -18,4 +18,6 @@ bash build-windows.sh
 
 ## credits
 - https://learnopengl.com/
+- https://www.mingw-w64.org/
 - https://github.com/SasLuca/GLFWCMakeTemplate
+- https://github.com/nothings/stb

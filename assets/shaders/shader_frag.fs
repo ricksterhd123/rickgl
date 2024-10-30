@@ -1,12 +1,13 @@
 #version 330 core
 
-uniform float gTime;
-
+in vec2 TexCoord;
 out vec4 FragColor;
-in vec3 ourColor;
+
+uniform float gTime;
+uniform sampler2D texture1;
+uniform sampler2D texture2;
 
 void main()
 {
-   float intensity = sin(gTime/1000);
-   FragColor = vec4(ourColor.x * intensity, ourColor.y * intensity, ourColor.z * intensity, 1.0f);
+   FragColor = mix(texture(texture1, TexCoord), texture(texture2, TexCoord), abs(cos(gTime/1000)));
 }
