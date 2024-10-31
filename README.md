@@ -1,5 +1,5 @@
 # rickgl demo
-A cross-compilable OpenGL demo for x86_64 Windows and GNU/Linux
+A cross-compilable OpenGL demo for x86_64 Windows and GNU/Linux and wasm webGL
 
 ## Compile to wasm webgl
 ```sh
