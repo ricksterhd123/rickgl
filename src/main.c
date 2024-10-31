@@ -43,25 +43,23 @@ void scroll_callback(GLFWwindow *window, double xoffset, double yoffset)
 double lastxpos = 0;
 double lastypos = 0;
 
-void process_input(GLFWwindow *window)
+void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
 {
-    double xtpos, ytpos;
-    glfwGetCursorPos(window, &xtpos, &ytpos);
-
-    double xpos, ypos;
-    xpos = xtpos - lastxpos;
-    ypos = ytpos - lastypos;
-
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-        glfwSetWindowShouldClose(window, 1);
-
-    float sensitivity = 0.01;
+    double xpos = xposIn - lastxpos;
+    double ypos = yposIn - lastypos;
+    double sensitivity = 0.01;
 
     yaw += xpos * sensitivity;
     pitch += ypos * sensitivity;
 
-    lastxpos = xtpos;
-    lastypos = ytpos;
+    lastxpos = xposIn;
+    lastypos = yposIn;
+}
+
+void process_input(GLFWwindow *window)
+{
+    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+        glfwSetWindowShouldClose(window, 1);
 }
 
 int main(void)
@@ -93,8 +91,10 @@ int main(void)
 
     glfwSwapInterval(1);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetScrollCallback(window, scroll_callback);
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+
+    // glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
 
     glEnable(GL_MULTISAMPLE);
     glEnable(GL_DEPTH_TEST);
