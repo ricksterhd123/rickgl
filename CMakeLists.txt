@@ -4,6 +4,10 @@ project(rickgl C)
 # Setup libraries
 include(FetchContent)
 
+FetchContent_Declare(stb GIT_REPOSITORY https://github.com/nothings/stb.git GIT_TAG master)
+FetchContent_MakeAvailable(stb)
+include_directories(${stb_SOURCE_DIR})
+
 FetchContent_Declare(cglm GIT_REPOSITORY https://github.com/recp/cglm.git GIT_TAG master)
 FetchContent_MakeAvailable(cglm)
 
@@ -33,7 +37,7 @@ if (${CMAKE_SYSTEM_NAME} STREQUAL "Emscripten")
     PUBLIC "-sSINGLE_FILE")
 
     set_target_properties(rickgl PROPERTIES LINK_FLAGS "--embed-file ${CMAKE_SOURCE_DIR}/assets@/assets")
-    target_link_libraries(rickgl PRIVATE cglm)
+    target_link_libraries(rickgl PRIVATE cglm stb)
 else()
     FetchContent_Declare(glfw GIT_REPOSITORY https://github.com/glfw/glfw.git GIT_TAG master)
     FetchContent_Declare(glad GIT_REPOSITORY https://github.com/SasLuca/MyGlad.git GIT_TAG master)
@@ -45,5 +49,5 @@ else()
     FetchContent_MakeAvailable(glfw)
     FetchContent_MakeAvailable(glad)
 
-    target_link_libraries(rickgl PRIVATE cglm glad glfw)
+    target_link_libraries(rickgl PRIVATE cglm stb glad glfw)
 endif()
