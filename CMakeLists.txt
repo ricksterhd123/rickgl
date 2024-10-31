@@ -12,14 +12,19 @@ FetchContent_MakeAvailable(stb)
 FetchContent_Declare(cglm GIT_REPOSITORY https://github.com/recp/cglm.git GIT_TAG master)
 FetchContent_MakeAvailable(cglm)
 
+FetchContent_Declare(nuklear GIT_REPOSITORY https://github.com/Immediate-Mode-UI/Nuklear.git GIT_TAG master)
+FetchContent_MakeAvailable(nuklear)
+
 include_directories(
     ${stb_SOURCE_DIR}
     ${cglm_SOURCE_DIR}/include
+    ${nuklear_SOURCE_DIR}
 )
 
 if (${CMAKE_SYSTEM_NAME} STREQUAL "Emscripten" OR ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
     set(ASSIMP_BUILD_ZLIB ON CACHE BOOL "Disable Assimp's internal ZLIB")
     set(ASSIMP_BUILD_ALL_IMPORTERS_BY_DEFAULT OFF CACHE BOOL "Build all Assimp's importers")
+    set(ASSIMP_BUILD_TESTS OFF CACHE BOOL "Build Assimp's test suite")
     set(ASSIMP_NO_EXPORT ON CACHE BOOL "Disable Assimp's export")
     set(ASSIMP_BUILD_IRRXML OFF CACHE BOOL "Build Assimp's IRRXML")
     set(ASSIMP_BUILD_OBJ_IMPORTER ON CACHE BOOL "Build Assimp obj importer")

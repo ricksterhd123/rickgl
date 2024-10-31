@@ -8,6 +8,7 @@
         "gl.h": "c",
         "shader.h": "c",
         "rickgl.h": "c",
-        "cglm.h": "c"
+        "cglm.h": "c",
+        "nuklear.h": "c"
     }
 }

@@ -8,14 +8,33 @@
 #include <emscripten.h>
 #endif
 
+#define NK_INCLUDE_FIXED_TYPES
+#define NK_INCLUDE_STANDARD_IO
+#define NK_INCLUDE_STANDARD_VARARGS
+#define NK_INCLUDE_DEFAULT_ALLOCATOR
+#define NK_INCLUDE_VERTEX_BUFFER_OUTPUT
+#define NK_INCLUDE_FONT_BAKING
+#define NK_INCLUDE_DEFAULT_FONT
+#define NK_IMPLEMENTATION
+#define NK_GLFW_GL3_IMPLEMENTATION
+
+#include <nuklear.h>
+#include <nuklear_glfw_gl3.h>
+
 #include "model.h"
 #include "shader.h"
 #include "texture.h"
 #include "camera.h"
 #include "tick.h"
 
-const unsigned int SCR_WIDTH = 640;
-const unsigned int SCR_HEIGHT = 480;
+#define MAX_VERTEX_BUFFER 512 * 1024
+#define MAX_ELEMENT_BUFFER 128 * 1024
+
+const unsigned int SCR_WIDTH = 800;
+const unsigned int SCR_HEIGHT = 600;
+
+struct nk_glfw glfw;
+struct nk_context *context;
 
 GLFWwindow *window;
 Shader *shader;
@@ -23,14 +42,14 @@ Texture *texture1;
 Texture *texture2;
 Camera *camera;
 
-Model* torus;
-Model* cube;
-Model* icosphere;
+Model *torus;
+Model *cube;
+Model *icosphere;
 
 vec3 cameraPosition = {0, 0, -3.0f};
 vec3 cameraLookAt = {0, 0, 0};
 
-float yaw = -90.0f;
+float yaw = 0.0f;
 float pitch = 0.0f;
 float fov = 45.0f;
 float distance = 5;
@@ -45,8 +64,19 @@ void process_input(GLFWwindow *window);
 
 void main_loop()
 {
+    printf("%f, %f\n", pitch, yaw);
+
+    if (pitch > 179.0f)
+    {
+        pitch = 179.0f;
+    }
+    if (pitch < 0.1f)
+    {
+        pitch = 0.1;
+    }
+
     // Update camera position
-    vec3 offset = {distance * cos(yaw) * sin(pitch), distance * cos(pitch), distance * sin(yaw) * sin(pitch)};
+    vec3 offset = {distance * cos(glm_rad(yaw)) * sin(glm_rad(pitch)), distance * cos(glm_rad(pitch)), distance * sin(glm_rad(yaw)) * sin(glm_rad(pitch))};
     set_camera_view(camera, offset, cameraLookAt);
     update_camera(camera);
 
@@ -66,8 +96,8 @@ void main_loop()
     // Set texture & shader
     use_texture(texture1);
     use_texture(texture2);
-    // Draw model
 
+    // Draw model
     use_shader(shader);
 
     shader_set_mat4(shader, "model", (float *)torus->transform);
@@ -78,6 +108,14 @@ void main_loop()
 
     shader_set_mat4(shader, "model", (float *)icosphere->transform);
     draw_model(icosphere);
+
+    nk_glfw3_new_frame(&glfw);
+    if (nk_begin(context, "Nuklear Window", nk_rect(0, 0, 200, 200),
+                 NK_WINDOW_BORDER | NK_WINDOW_TITLE | NK_WINDOW_MINIMIZABLE | NK_WINDOW_MOVABLE | NK_WINDOW_SCALABLE))
+    {
+        nk_end(context);
+    }
+    nk_glfw3_render(&glfw, NK_ANTI_ALIASING_ON, MAX_VERTEX_BUFFER, MAX_ELEMENT_BUFFER);
 
     glfwSwapBuffers(window);
     glfwPollEvents();
@@ -109,6 +147,11 @@ int main(void)
         return -1;
     }
 #endif
+
+    context = nk_glfw3_init(&glfw, window, NK_GLFW3_INSTALL_CALLBACKS);
+    struct nk_font_atlas *atlas;
+    nk_glfw3_font_stash_begin(&glfw, &atlas);
+    nk_glfw3_font_stash_end(&glfw);
 
     glfwSwapInterval(1);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
@@ -157,6 +200,7 @@ int main(void)
     destroy_model(cube);
     destroy_model(icosphere);
     destroy_shader(shader);
+    nk_glfw3_shutdown(&glfw);
 
     glfwTerminate();
     return 0;
@@ -189,7 +233,7 @@ void mouse_callback(GLFWwindow *window, double xposIn, double yposIn)
 {
     double xpos = xposIn - lastxpos;
     double ypos = yposIn - lastypos;
-    double sensitivity = 0.01;
+    double sensitivity = 0.5;
 
     yaw += xpos * sensitivity;
     pitch += ypos * sensitivity;
@@ -202,4 +246,12 @@ void process_input(GLFWwindow *window)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, 1);
+    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+        pitch += 5;
+    if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+        pitch -= 5;
+    if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
+        yaw += 5;
+    if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
+        yaw -= 5;
 }
