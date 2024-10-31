@@ -1,4 +1,5 @@
-cmake -DCMAKE_TOOLCHAIN_FILE=win64.cmake -B build
+mkdir -p build
 pushd build
-cmake --build .
+cmake -DCMAKE_TOOLCHAIN_FILE=win64.cmake ../..
+cmake --build . --clean-first
 popd
