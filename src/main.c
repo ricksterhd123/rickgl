@@ -8,6 +8,7 @@
 #include <emscripten.h>
 #endif
 
+#include "model.h"
 #include "shader.h"
 #include "texture.h"
 #include "camera.h"
@@ -22,49 +23,9 @@ Texture *texture1;
 Texture *texture2;
 Camera *camera;
 
-unsigned int VBO, VAO;
-float vertices[] = {
-    -0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
-    0.5f, -0.5f, -0.5f, 1.0f, 0.0f,
-    0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
-    0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
-    -0.5f, 0.5f, -0.5f, 0.0f, 1.0f,
-    -0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
-
-    -0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
-    0.5f, -0.5f, 0.5f, 1.0f, 0.0f,
-    0.5f, 0.5f, 0.5f, 1.0f, 1.0f,
-    0.5f, 0.5f, 0.5f, 1.0f, 1.0f,
-    -0.5f, 0.5f, 0.5f, 0.0f, 1.0f,
-    -0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
-
-    -0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
-    -0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
-    -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-    -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-    -0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
-    -0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
-
-    0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
-    0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
-    0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-    0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-    0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
-    0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
-
-    -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-    0.5f, -0.5f, -0.5f, 1.0f, 1.0f,
-    0.5f, -0.5f, 0.5f, 1.0f, 0.0f,
-    0.5f, -0.5f, 0.5f, 1.0f, 0.0f,
-    -0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
-    -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-
-    -0.5f, 0.5f, -0.5f, 0.0f, 1.0f,
-    0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
-    0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
-    0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
-    -0.5f, 0.5f, 0.5f, 0.0f, 0.0f,
-    -0.5f, 0.5f, -0.5f, 0.0f, 1.0f};
+Model* torus;
+Model* cube;
+Model* icosphere;
 
 vec3 cameraPosition = {0, 0, -3.0f};
 vec3 cameraLookAt = {0, 0, 0};
@@ -105,11 +66,18 @@ void main_loop()
     // Set texture & shader
     use_texture(texture1);
     use_texture(texture2);
+    // Draw model
+
     use_shader(shader);
 
-    // Draw model
-    glBindVertexArray(VAO);
-    glDrawArrays(GL_TRIANGLES, 0, 36);
+    shader_set_mat4(shader, "model", (float *)torus->transform);
+    draw_model(torus);
+
+    shader_set_mat4(shader, "model", (float *)cube->transform);
+    draw_model(cube);
+
+    shader_set_mat4(shader, "model", (float *)icosphere->transform);
+    draw_model(icosphere);
 
     glfwSwapBuffers(window);
     glfwPollEvents();
@@ -156,23 +124,11 @@ int main(void)
         "assets/shaders/shader_vert.vert",
         "assets/shaders/shader_frag.frag");
 
-    // ------------------------------------------------------------------
-    // set up vertex data (and buffer(s)) and configure vertex attributes
-    // ------------------------------------------------------------------
+    /////////////////////////////////////////
 
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-
-    glBindVertexArray(VAO);
-
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)0);
-    glEnableVertexAttribArray(0);
-
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
+    torus = init_model("assets/torus.obj", 0, 0, 0);
+    cube = init_model("assets/cube.obj", 2, 0, 0);
+    icosphere = init_model("assets/icosphere.obj", -2, 0, 0);
 
     /////////////////////////////////////////
 
@@ -186,11 +142,6 @@ int main(void)
     shader_set_int(shader, "texture2", 1);
 
     camera = init_camera(cameraPosition, cameraLookAt, fov, (float)SCR_WIDTH / (float)SCR_HEIGHT, 1.0, 100.0f);
-
-    mat4 model;
-    glm_mat4_identity(model);
-    shader_set_mat4(shader, "model", (float *)model);
-
     // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 #ifdef __EMSCRIPTEN__
@@ -202,8 +153,9 @@ int main(void)
     }
 #endif
 
-    glDeleteVertexArrays(1, &VAO);
-    glDeleteBuffers(1, &VBO);
+    destroy_model(torus);
+    destroy_model(cube);
+    destroy_model(icosphere);
     destroy_shader(shader);
 
     glfwTerminate();

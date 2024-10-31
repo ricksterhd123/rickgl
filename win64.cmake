@@ -17,8 +17,9 @@ set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
 set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
 
 # Optionally, specify if you want static libraries only
-set(BUILD_SHARED_LIBS OFF)
+# set(BUILD_SHARED_LIBS OFF)
 
+add_compile_options(-Wno-unknown-pragmas)
 # Hide console
 # add_compile_options(-mwindows)
 # add_link_options(-mwindows)
