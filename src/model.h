@@ -37,7 +37,6 @@ Model *init_model(const char *path, float x, float y, float z)
 
     const int attriubtesPerVertex = 8;
 
-    // Access mesh data (only the first mesh in this example)
     if (scene->mNumMeshes > 0)
     {
         struct aiMesh *mesh = scene->mMeshes[0];
@@ -130,9 +129,6 @@ Model *init_model(const char *path, float x, float y, float z)
 
         free(vertices);
         free(indices);
-
-        // vertices = NULL;
-        // indices = NULL;
     }
 
     aiReleaseImport(scene);
