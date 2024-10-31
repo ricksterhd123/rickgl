@@ -6,6 +6,9 @@ A cross-compilable OpenGL demo for x86_64 Windows and GNU/Linux and wasm webGL
 # install emscripten
 # (see https://emscripten.org/docs/getting_started/downloads.html or Dockerfile)
 bash build-wasm.sh
+cd build
+python3 -m http.server
+# go to http://127.0.0.1:8000/rickgl.html
 ```
 
 ## Compile for linux x86_64
