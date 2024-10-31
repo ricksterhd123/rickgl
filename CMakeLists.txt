@@ -2,9 +2,6 @@ cmake_minimum_required(VERSION 3.17)
 project(rickgl C)
 
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build static library")
-set(ASSIMP_BUILD_ZLIB ON CACHE BOOL "Disable Assimp's internal ZLIB")
-set(ASSIMP_BUILD_TESTS OFF CACHE BOOL "Build Assimp's test suite")
-set(ASSIMP_NO_EXPORT ON CACHE BOOL "Disable Assimp's export")
 
 # Setup libraries
 include(FetchContent)
@@ -15,15 +12,22 @@ FetchContent_MakeAvailable(stb)
 FetchContent_Declare(cglm GIT_REPOSITORY https://github.com/recp/cglm.git GIT_TAG master)
 FetchContent_MakeAvailable(cglm)
 
-if (${CMAKE_SYSTEM_NAME} STREQUAL "Emscripten" OR ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
-    FetchContent_Declare(assimp GIT_REPOSITORY https://github.com/assimp/assimp.git GIT_TAG master)
-    FetchContent_MakeAvailable(assimp)
-endif()
-
 include_directories(
     ${stb_SOURCE_DIR}
     ${cglm_SOURCE_DIR}/include
 )
+
+if (${CMAKE_SYSTEM_NAME} STREQUAL "Emscripten" OR ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+    set(ASSIMP_BUILD_ZLIB ON CACHE BOOL "Disable Assimp's internal ZLIB")
+    set(ASSIMP_BUILD_ALL_IMPORTERS_BY_DEFAULT OFF CACHE BOOL "Build all Assimp's importers")
+    set(ASSIMP_NO_EXPORT ON CACHE BOOL "Disable Assimp's export")
+    set(ASSIMP_BUILD_IRRXML OFF CACHE BOOL "Build Assimp's IRRXML")
+    set(ASSIMP_BUILD_OBJ_IMPORTER ON CACHE BOOL "Build Assimp obj importer")
+    set(ASSIMP_BUILD_FBX_IMPORTER ON CACHE BOOL "Build Assimp's IRRXML")
+
+    FetchContent_Declare(assimp GIT_REPOSITORY https://github.com/assimp/assimp.git GIT_TAG master)
+    FetchContent_MakeAvailable(assimp)
+endif()
 
 # Setup executable
 add_executable(rickgl "src/main.c")
