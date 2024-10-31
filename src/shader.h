@@ -1,6 +1,6 @@
 #pragma once
 
-#include <glad/glad.h>
+#include "rickgl.h"
 #include "file.h"
 
 typedef struct Shader
@@ -17,7 +17,7 @@ unsigned int load_shader_from_file(const char *path, int shader_type)
 
     const char *source = read_file(path);
 
-    printf("%s\n", source);
+    // printf("%s\n", source);
 
     unsigned int shader = glCreateShader(shader_type);
     glShaderSource(shader, 1, &source, NULL);

@@ -1,5 +1,5 @@
 mkdir -p build
 pushd build
-cmake ../..
+cmake ..
 cmake --build . --clean-first
 popd

@@ -1,3 +1,5 @@
+#pragma once
+
 #include <time.h>
 
 float get_tick_count() {

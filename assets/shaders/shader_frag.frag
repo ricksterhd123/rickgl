@@ -1,4 +1,5 @@
-#version 330 core
+#version 300 es
+precision mediump float;
 
 in vec2 TexCoord;
 out vec4 FragColor;
@@ -9,6 +10,6 @@ uniform sampler2D texture2;
 
 void main()
 {
-   FragColor = mix(texture(texture1, TexCoord), texture(texture2, TexCoord), abs(cos(gTime/1000)));
+   FragColor = mix(texture(texture1, TexCoord), texture(texture2, TexCoord), abs(cos(gTime/1000.0f)));
    // FragColor = texture(texture1, TexCoord);
 }
