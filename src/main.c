@@ -64,7 +64,16 @@ void process_input(GLFWwindow *window);
 
 void main_loop()
 {
-    printf("%f, %f\n", pitch, yaw);
+    float tickCount = get_tick_count();
+
+    nk_glfw3_new_frame(&glfw);
+    if (nk_begin(context, "Nuklear Window", nk_rect(0, 0, 200, 200),
+                 NK_WINDOW_BORDER | NK_WINDOW_TITLE | NK_WINDOW_MINIMIZABLE | NK_WINDOW_MOVABLE | NK_WINDOW_SCALABLE))
+    {
+        nk_end(context);
+    }
+
+    // printf("%f, %f\n", pitch, yaw);
 
     if (pitch > 179.0f)
     {
@@ -80,12 +89,6 @@ void main_loop()
     set_camera_view(camera, offset, cameraLookAt);
     update_camera(camera);
 
-    // Update shader values
-    float tickCount = get_tick_count();
-    shader_set_float(shader, "gTime", tickCount);
-    shader_set_mat4(shader, "view", (float *)camera->view);
-    shader_set_mat4(shader, "projection", (float *)camera->projection);
-
     // Process input
     process_input(window);
 
@@ -100,6 +103,10 @@ void main_loop()
     // Draw model
     use_shader(shader);
 
+    shader_set_float(shader, "gTime", tickCount);
+    shader_set_mat4(shader, "view", (float *)camera->view);
+    shader_set_mat4(shader, "projection", (float *)camera->projection);
+
     shader_set_mat4(shader, "model", (float *)torus->transform);
     draw_model(torus);
 
@@ -109,12 +116,6 @@ void main_loop()
     shader_set_mat4(shader, "model", (float *)icosphere->transform);
     draw_model(icosphere);
 
-    nk_glfw3_new_frame(&glfw);
-    if (nk_begin(context, "Nuklear Window", nk_rect(0, 0, 200, 200),
-                 NK_WINDOW_BORDER | NK_WINDOW_TITLE | NK_WINDOW_MINIMIZABLE | NK_WINDOW_MOVABLE | NK_WINDOW_SCALABLE))
-    {
-        nk_end(context);
-    }
     nk_glfw3_render(&glfw, NK_ANTI_ALIASING_ON, MAX_VERTEX_BUFFER, MAX_ELEMENT_BUFFER);
 
     glfwSwapBuffers(window);
@@ -148,7 +149,7 @@ int main(void)
     }
 #endif
 
-    context = nk_glfw3_init(&glfw, window, NK_GLFW3_INSTALL_CALLBACKS);
+    context = nk_glfw3_init(&glfw, window, NK_GLFW3_DEFAULT);
     struct nk_font_atlas *atlas;
     nk_glfw3_font_stash_begin(&glfw, &atlas);
     nk_glfw3_font_stash_end(&glfw);
@@ -161,6 +162,7 @@ int main(void)
     // glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
 
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
     glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
 
     shader = load_shader(

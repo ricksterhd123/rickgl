@@ -315,6 +315,8 @@ nk_glfw3_render(struct nk_glfw *glfw, enum nk_anti_aliasing AA, int max_vertex_b
     glBindVertexArray(0);
     glDisable(GL_BLEND);
     glDisable(GL_SCISSOR_TEST);
+    glEnable(GL_CULL_FACE);
+    glEnable(GL_DEPTH_TEST);
 }
 
 NK_API void
