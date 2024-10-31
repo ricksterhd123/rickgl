@@ -5,6 +5,7 @@ RUN apt install -y build-essential
 RUN apt install -y xorg-dev
 RUN apt install -y libwayland-dev
 RUN apt install -y cmake
+RUN apt install -y nodejs npm
 RUN apt install -y git
 RUN apt install -y libxkbcommon-dev
 RUN apt install -y mingw-w64

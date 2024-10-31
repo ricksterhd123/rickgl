@@ -2,16 +2,15 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python HTTP Server",
-            "type": "python",
+            "type": "node",
             "request": "launch",
-            "module": "http.server",
+            "name": "Launch HTTP Server",
+            "runtimeExecutable": "npx",
             "args": [
-                "8000",
-                "-d",
-                "build"
+                "http-server",
+                "build",
+                "-p", "3000"
             ],
-            "justMyCode": true,
             "console": "integratedTerminal"
         }
     ]
