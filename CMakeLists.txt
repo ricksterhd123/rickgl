@@ -1,25 +1,25 @@
 cmake_minimum_required(VERSION 3.17)
 project(rickgl C)
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build static library")
 
 # Setup libraries
 include(FetchContent)
 
 FetchContent_Declare(stb GIT_REPOSITORY https://github.com/nothings/stb.git GIT_TAG master)
 FetchContent_MakeAvailable(stb)
-include_directories(${stb_SOURCE_DIR})
 
 FetchContent_Declare(cglm GIT_REPOSITORY https://github.com/recp/cglm.git GIT_TAG master)
 FetchContent_MakeAvailable(cglm)
 
-# Setup assets
-file(COPY "${CMAKE_SOURCE_DIR}/assets" DESTINATION "${CMAKE_BINARY_DIR}")
+include_directories(
+    ${stb_SOURCE_DIR}
+    ${cglm_SOURCE_DIR}/include
+)
 
 # Setup executable
-
 add_executable(rickgl "src/main.c")
 target_include_directories(rickgl PUBLIC "src")
 set_property(TARGET rickgl PROPERTY C_STANDARD 99)
-set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build static library")
 
 if (${CMAKE_SYSTEM_NAME} STREQUAL "Emscripten")
     set_target_properties(rickgl PROPERTIES OUTPUT_NAME "index")
@@ -37,8 +37,10 @@ if (${CMAKE_SYSTEM_NAME} STREQUAL "Emscripten")
     PUBLIC "-sSINGLE_FILE")
 
     set_target_properties(rickgl PROPERTIES LINK_FLAGS "--embed-file ${CMAKE_SOURCE_DIR}/assets@/assets")
-    target_link_libraries(rickgl PRIVATE cglm)
+    target_link_libraries(rickgl PRIVATE)
 else()
+    file(COPY "${CMAKE_SOURCE_DIR}/assets" DESTINATION "${CMAKE_BINARY_DIR}")
+
     FetchContent_Declare(glfw GIT_REPOSITORY https://github.com/glfw/glfw.git GIT_TAG master)
     FetchContent_Declare(glad GIT_REPOSITORY https://github.com/SasLuca/MyGlad.git GIT_TAG master)
 
@@ -49,5 +51,5 @@ else()
     FetchContent_MakeAvailable(glfw)
     FetchContent_MakeAvailable(glad)
 
-    target_link_libraries(rickgl PRIVATE cglm glad glfw)
+    target_link_libraries(rickgl PRIVATE glad glfw)
 endif()
