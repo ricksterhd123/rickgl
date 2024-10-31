@@ -1,0 +1,18 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python HTTP Server",
+            "type": "python",
+            "request": "launch",
+            "module": "http.server",
+            "args": [
+                "8000",
+                "-d",
+                "build"
+            ],
+            "justMyCode": true,
+            "console": "integratedTerminal"
+        }
+    ]
+}

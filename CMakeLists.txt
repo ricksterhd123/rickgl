@@ -21,8 +21,8 @@ target_include_directories(rickgl PUBLIC "src")
 set_property(TARGET rickgl PROPERTY C_STANDARD 99)
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build static library")
 
-
 if (${CMAKE_SYSTEM_NAME} STREQUAL "Emscripten")
+    set_target_properties(rickgl PROPERTIES OUTPUT_NAME "index")
     set(CMAKE_EXECUTABLE_SUFFIX .html)
 
     target_compile_options(rickgl
