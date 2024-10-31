@@ -1,0 +1,10 @@
+[
+    {
+        "name": "win64",
+        "toolchainFile": "win64.cmake"
+    },
+    {
+        "name": "emscripten",
+        "toolchainFile": "${env:HOME}/emsdk/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake"
+    }
+]

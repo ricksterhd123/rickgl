@@ -1,0 +1,13 @@
+{
+    "files.associations": {
+        "glad.h": "c",
+        "stdio.h": "c",
+        "camera.h": "c",
+        "texture.h": "c",
+        "tick.h": "c",
+        "gl.h": "c",
+        "shader.h": "c",
+        "rickgl.h": "c",
+        "cglm.h": "c"
+    }
+}
