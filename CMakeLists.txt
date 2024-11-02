@@ -56,7 +56,10 @@ if (${CMAKE_SYSTEM_NAME} STREQUAL "Emscripten")
     PUBLIC "-sFORCE_FILESYSTEM"
     PUBLIC "-sSINGLE_FILE")
 
-    set_target_properties(rickgl PROPERTIES LINK_FLAGS "--embed-file ${CMAKE_SOURCE_DIR}/assets@/assets")
+    set_target_properties(rickgl PROPERTIES
+        LINK_FLAGS "--embed-file ${CMAKE_SOURCE_DIR}/assets@/assets --shell-file ${CMAKE_SOURCE_DIR}/index.html"
+    )
+
     target_link_libraries(rickgl PRIVATE assimp)
 else()
     file(COPY "${CMAKE_SOURCE_DIR}/assets" DESTINATION "${CMAKE_BINARY_DIR}")
