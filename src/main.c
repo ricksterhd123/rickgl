@@ -61,66 +61,8 @@ void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
 void mouse_callback(GLFWwindow *window, double xposIn, double yposIn);
 void process_input(GLFWwindow *window);
-
-void main_loop()
-{
-    float tickCount = get_tick_count();
-
-    nk_glfw3_new_frame(&glfw);
-    if (nk_begin(context, "Nuklear Window", nk_rect(0, 0, 200, 200),
-                 NK_WINDOW_BORDER | NK_WINDOW_TITLE | NK_WINDOW_MINIMIZABLE | NK_WINDOW_MOVABLE | NK_WINDOW_SCALABLE))
-    {
-        nk_end(context);
-    }
-
-    // printf("%f, %f\n", pitch, yaw);
-
-    if (pitch > 179.0f)
-    {
-        pitch = 179.0f;
-    }
-    if (pitch < 0.1f)
-    {
-        pitch = 0.1;
-    }
-
-    // Update camera position
-    vec3 offset = {distance * cos(glm_rad(yaw)) * sin(glm_rad(pitch)), distance * cos(glm_rad(pitch)), distance * sin(glm_rad(yaw)) * sin(glm_rad(pitch))};
-    set_camera_view(camera, offset, cameraLookAt);
-    update_camera(camera);
-
-    // Process input
-    process_input(window);
-
-    // Clear scene
-    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    // Set texture & shader
-    use_texture(texture1);
-    use_texture(texture2);
-
-    // Draw model
-    use_shader(shader);
-
-    shader_set_float(shader, "gTime", tickCount);
-    shader_set_mat4(shader, "view", (float *)camera->view);
-    shader_set_mat4(shader, "projection", (float *)camera->projection);
-
-    shader_set_mat4(shader, "model", (float *)torus->transform);
-    draw_model(torus);
-
-    shader_set_mat4(shader, "model", (float *)cube->transform);
-    draw_model(cube);
-
-    shader_set_mat4(shader, "model", (float *)icosphere->transform);
-    draw_model(icosphere);
-
-    nk_glfw3_render(&glfw, NK_ANTI_ALIASING_ON, MAX_VERTEX_BUFFER, MAX_ELEMENT_BUFFER);
-
-    glfwSwapBuffers(window);
-    glfwPollEvents();
-}
+void draw_gui();
+void main_loop();
 
 int main(void)
 {
@@ -171,7 +113,7 @@ int main(void)
 
     /////////////////////////////////////////
 
-    torus = init_model("assets/torus.obj", 0, 0, 0);
+    torus = init_model("assets/Car.obj", 0, 0, 0);
     cube = init_model("assets/cube.obj", 2, 0, 0);
     icosphere = init_model("assets/icosphere.obj", -2, 0, 0);
 
@@ -206,6 +148,70 @@ int main(void)
 
     glfwTerminate();
     return 0;
+}
+
+void draw_gui()
+{
+    nk_glfw3_new_frame(&glfw);
+    if (nk_begin(context, "Nuklear Window", nk_rect(0, 0, 200, 200),
+                 NK_WINDOW_BORDER | NK_WINDOW_TITLE | NK_WINDOW_MINIMIZABLE | NK_WINDOW_MOVABLE | NK_WINDOW_SCALABLE))
+    {
+        nk_end(context);
+    }
+    nk_glfw3_render(&glfw, NK_ANTI_ALIASING_ON, MAX_VERTEX_BUFFER, MAX_ELEMENT_BUFFER);
+}
+
+void main_loop()
+{
+    float tickCount = get_tick_count();
+
+    // printf("%f, %f\n", pitch, yaw);
+
+    if (pitch > 179.0f)
+    {
+        pitch = 179.0f;
+    }
+    if (pitch < 0.1f)
+    {
+        pitch = 0.1;
+    }
+
+    // Update camera position
+    vec3 offset = {distance * cos(glm_rad(yaw)) * sin(glm_rad(pitch)), distance * cos(glm_rad(pitch)), distance * sin(glm_rad(yaw)) * sin(glm_rad(pitch))};
+    set_camera_view(camera, offset, cameraLookAt);
+    update_camera(camera);
+
+    // Process input
+    process_input(window);
+
+    // Clear scene
+    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    // Set texture & shader
+    use_texture(texture1);
+    use_texture(texture2);
+
+    // Draw model
+    use_shader(shader);
+
+    shader_set_float(shader, "gTime", tickCount);
+    shader_set_mat4(shader, "view", (float *)camera->view);
+    shader_set_mat4(shader, "projection", (float *)camera->projection);
+
+    shader_set_mat4(shader, "model", (float *)torus->transform);
+    draw_model(torus);
+
+    shader_set_mat4(shader, "model", (float *)cube->transform);
+    draw_model(cube);
+
+    shader_set_mat4(shader, "model", (float *)icosphere->transform);
+    draw_model(icosphere);
+
+    draw_gui();
+
+    glfwSwapBuffers(window);
+    glfwPollEvents();
 }
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height)
