@@ -1,7 +1,7 @@
 # rickgl demo
 A cross-compilable OpenGL demo for x86_64 Windows and GNU/Linux and wasm webGL
 
-https://rickgl-demo-mi6r4h4u8-ricksterhd123-demos.vercel.app/
+https://rickgl.vercel.app/
 
 ## Compile for webgl
 ```sh
