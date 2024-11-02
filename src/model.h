@@ -13,11 +13,26 @@ typedef struct Mesh
     unsigned int nIndices;
 } Mesh;
 
-Mesh *init_mesh(struct aiMesh *mesh_in)
+struct aiMaterialProperty* get_material_property(struct aiMaterial *material, const char* name) {
+    for (int i = 0; i < material->mNumProperties; i++) {
+        const char* propertyName = material->mProperties[i]->mKey.data;
+        if (strcmp(name, propertyName) == 0) {
+            return material->mProperties[i];
+        }
+    }
+    return NULL;
+}
+
+Mesh *init_mesh(struct aiMesh *mesh_in, struct aiMaterial *material_in)
 {
+    printf("%s\n", mesh_in->mName.data);
+    for (int i = 0; i < material_in->mNumProperties; i++) {
+        printf("\t%s, %d, %d\n", material_in->mProperties[i]->mKey.data, (int) material_in->mProperties[i]->mType, material_in->mProperties[i]->mDataLength);
+    }
+
     Mesh* mesh = (Mesh*) malloc(sizeof(Mesh));
 
-    const int attributesPerVertex = 8;
+    const int attributesPerVertex = 12;
     unsigned int indicesPerFace = mesh_in->mFaces[0].mNumIndices;
 
     unsigned int nVertices = mesh_in->mNumVertices * attributesPerVertex;
@@ -39,16 +54,30 @@ Mesh *init_mesh(struct aiMesh *mesh_in)
     {
         struct aiVector3D vertex = mesh_in->mVertices[i];
         struct aiVector3D normal = mesh_in->mNormals[i];
+
+        struct aiMaterialProperty* diffuse = get_material_property(material_in, "$clr.diffuse");
+        if (diffuse == NULL) {
+            fprintf(stderr, "Failed to load colors\n");
+        }
+
+        float* diffuseColors = (float*) diffuse->mData;
         struct aiVector3D texCoord = mesh_in->mTextureCoords[0] ? mesh_in->mTextureCoords[0][i] : (struct aiVector3D){0.0f, 0.0f, 0.0f};
 
-        vertices[attributesPerVertex * i] = vertex.x;
+        vertices[attributesPerVertex * i + 0] = vertex.x;
         vertices[attributesPerVertex * i + 1] = vertex.y;
         vertices[attributesPerVertex * i + 2] = vertex.z;
+
         vertices[attributesPerVertex * i + 3] = normal.x;
         vertices[attributesPerVertex * i + 4] = normal.y;
         vertices[attributesPerVertex * i + 5] = normal.z;
-        vertices[attributesPerVertex * i + 6] = texCoord.x;
-        vertices[attributesPerVertex * i + 7] = texCoord.y;
+
+        vertices[attributesPerVertex * i + 6] = diffuseColors[0];
+        vertices[attributesPerVertex * i + 7] = diffuseColors[1];
+        vertices[attributesPerVertex * i + 8] = diffuseColors[2];
+        vertices[attributesPerVertex * i + 9] = diffuseColors[3];
+
+        vertices[attributesPerVertex * i + 10] = texCoord.x;
+        vertices[attributesPerVertex * i + 11] = texCoord.y;
 
         // printf("#%d (%f, %f, %f), (%f, %f, %f), (%f, %f)\n", i,
         //        vertex.x,
@@ -90,8 +119,11 @@ Mesh *init_mesh(struct aiMesh *mesh_in)
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, attributesPerVertex * sizeof(float), (void *)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
 
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, attributesPerVertex * sizeof(float), (void *)(6 * sizeof(float)));
+    glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, attributesPerVertex * sizeof(float), (void *)(6 * sizeof(float)));
     glEnableVertexAttribArray(2);
+
+    glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, attributesPerVertex * sizeof(float), (void *)(10 * sizeof(float)));
+    glEnableVertexAttribArray(3);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
@@ -153,7 +185,9 @@ Model *init_model(const char *path, float x, float y, float z)
 
         for (int i = 0; i < scene->mNumMeshes; i++) {
             struct aiMesh *mesh = scene->mMeshes[i];
-            model->meshes[i] = init_mesh(mesh);
+            struct aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
+
+            model->meshes[i] = init_mesh(mesh, material);
         }
     } else {
         fprintf(stderr, "Model %s has no mesh", path);

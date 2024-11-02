@@ -1,6 +1,7 @@
 #version 300 es
 precision mediump float;
 
+in vec4 Color;
 in vec2 TexCoord;
 out vec4 FragColor;
 
@@ -10,7 +11,5 @@ uniform sampler2D texture2;
 
 void main()
 {
-   // FragColor = vec4(1.0f, 1.0f, 1.0f, 1.0f);
-   // mix(texture(texture1, TexCoord), texture(texture2, TexCoord), abs(cos(gTime/1000.0f)));
-   FragColor = texture(texture1, TexCoord);
+   FragColor = Color * texture(texture1, TexCoord);
 }

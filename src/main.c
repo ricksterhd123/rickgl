@@ -50,9 +50,9 @@ vec3 cameraPosition = {0, 0, -3.0f};
 vec3 cameraLookAt = {0, 0, 0};
 
 float yaw = 0.0f;
-float pitch = 0.0f;
+float pitch = 45.0f;
 float fov = 45.0f;
-float distance = 5;
+float distance = 50;
 double lastxpos = 0;
 double lastypos = 0;
 
@@ -113,9 +113,9 @@ int main(void)
 
     /////////////////////////////////////////
 
-    torus = init_model("assets/models/Car.obj", 0, 0, 0);
-    cube = init_model("assets/models/cube.obj", 2, 0, 0);
-    icosphere = init_model("assets/models/icosphere.obj", -2, 0, 0);
+    torus = init_model("assets/models/map.obj", 0, 0, 0);
+    cube = init_model("assets/models/cube.obj", 2, 1, 0);
+    icosphere = init_model("assets/models/icosphere.obj", -2, 1, 0);
 
     /////////////////////////////////////////
 
@@ -150,12 +150,32 @@ int main(void)
     return 0;
 }
 
+static char GUI_TEXT_BUFFER[256];
 void draw_gui()
 {
     nk_glfw3_new_frame(&glfw);
-    if (nk_begin(context, "Nuklear Window", nk_rect(0, 0, 200, 200),
-                 NK_WINDOW_BORDER | NK_WINDOW_TITLE | NK_WINDOW_MINIMIZABLE | NK_WINDOW_MOVABLE | NK_WINDOW_SCALABLE))
+
+    if (nk_begin(context, "Settings", nk_rect(0, 0, 200, 200), NK_WINDOW_BORDER | NK_WINDOW_TITLE))
     {
+        sprintf(GUI_TEXT_BUFFER, "Camera Yaw: %f", yaw);
+        nk_layout_row_static(context, 20, 150, 1);
+        nk_label(context, GUI_TEXT_BUFFER, NK_TEXT_LEFT);
+
+        sprintf(GUI_TEXT_BUFFER, "Camera Pitch: %f", pitch);
+        nk_layout_row_static(context, 20, 150, 1);
+        nk_label(context, GUI_TEXT_BUFFER, NK_TEXT_LEFT);
+
+        sprintf(GUI_TEXT_BUFFER, "Camera Distance: %f", distance);
+        nk_layout_row_push(context, 150);
+        nk_label(context, GUI_TEXT_BUFFER, NK_TEXT_LEFT);
+
+        nk_layout_row_begin(context, NK_STATIC, 30, 2);
+        {
+            nk_layout_row_push(context, 150);
+            nk_slider_float(context, 10.0f, &distance, 75.0f, 0.1f);
+        }
+        nk_layout_row_end(context);
+
         nk_end(context);
     }
     nk_glfw3_render(&glfw, NK_ANTI_ALIASING_ON, MAX_VERTEX_BUFFER, MAX_ELEMENT_BUFFER);
@@ -164,8 +184,11 @@ void draw_gui()
 void main_loop()
 {
     float tickCount = get_tick_count();
-
-    // printf("%f, %f\n", pitch, yaw);
+    yaw += 0.1f;
+    if (yaw > 360)
+    {
+        yaw = 0;
+    }
 
     if (pitch > 179.0f)
     {
@@ -225,29 +248,26 @@ void framebuffer_size_callback(GLFWwindow *window, int width, int height)
 
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset)
 {
-    distance += yoffset * 0.5f;
-
-    if (distance < 2)
-    {
-        distance = 2;
-    }
-    if (distance > 10)
-    {
-        distance = 10;
-    }
+    // distance += yoffset * 0.5f;
+    // if (distance < 2)
+    // {
+    //     distance = 2;
+    // }
+    // if (distance > 100)
+    // {
+    //     distance = 10;
+    // }
 }
 
 void mouse_callback(GLFWwindow *window, double xposIn, double yposIn)
 {
-    double xpos = xposIn - lastxpos;
-    double ypos = yposIn - lastypos;
-    double sensitivity = 0.5;
-
-    yaw += xpos * sensitivity;
-    pitch += ypos * sensitivity;
-
-    lastxpos = xposIn;
-    lastypos = yposIn;
+    // double xpos = xposIn - lastxpos;
+    // double ypos = yposIn - lastypos;
+    // double sensitivity = 0.5;
+    // yaw += xpos * sensitivity;
+    // pitch += ypos * sensitivity;
+    // lastxpos = xposIn;
+    // lastypos = yposIn;
 }
 
 void process_input(GLFWwindow *window)
