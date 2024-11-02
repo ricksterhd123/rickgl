@@ -42,8 +42,9 @@ Texture *texture1;
 Texture *texture2;
 Camera *camera;
 
-Model *torus;
 Model *cube;
+Model *car;
+Model *map;
 Model *icosphere;
 
 vec3 cameraPosition = {0, 0, -3.0f};
@@ -113,7 +114,8 @@ int main(void)
 
     /////////////////////////////////////////
 
-    torus = init_model("assets/models/map.obj", 0, 0, 0);
+    map = init_model("assets/models/map.obj", 0, 0, 0);
+    car = init_model("assets/models/Car.obj", 0, 1, 0);
     cube = init_model("assets/models/cube.obj", 2, 1, 0);
     icosphere = init_model("assets/models/icosphere.obj", -2, 1, 0);
 
@@ -140,9 +142,10 @@ int main(void)
     }
 #endif
 
-    destroy_model(torus);
+    destroy_model(map);
     destroy_model(cube);
     destroy_model(icosphere);
+    destroy_model(car);
     destroy_shader(shader);
     nk_glfw3_shutdown(&glfw);
 
@@ -222,14 +225,17 @@ void main_loop()
     shader_set_mat4(shader, "view", (float *)camera->view);
     shader_set_mat4(shader, "projection", (float *)camera->projection);
 
-    shader_set_mat4(shader, "model", (float *)torus->transform);
-    draw_model(torus);
+    shader_set_mat4(shader, "model", (float *)map->transform);
+    draw_model(map);
 
     shader_set_mat4(shader, "model", (float *)cube->transform);
     draw_model(cube);
 
     shader_set_mat4(shader, "model", (float *)icosphere->transform);
     draw_model(icosphere);
+
+    shader_set_mat4(shader, "model", (float *)car->transform);
+    draw_model(car);
 
     draw_gui();
 
