@@ -7,6 +7,7 @@
 
 typedef struct Texture
 {
+    char textureName[256];
     unsigned int id;
     GLenum index;
 } Texture;
@@ -19,12 +20,17 @@ void use_texture(Texture *texture)
 
 Texture *load_texture_2d(const char *path, GLenum index)
 {
+
     Texture *texture = (Texture *)malloc(sizeof(Texture));
     if (texture == NULL)
     {
         fprintf(stderr, "Failed to initialize texture: not enough memory!\n");
         return NULL;
     }
+
+    char* filename = get_path_filename(path);
+    printf("%s\n", filename);
+    free(filename);
 
     texture->index = index;
     glGenTextures(1, &texture->id);

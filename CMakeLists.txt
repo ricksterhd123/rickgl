@@ -41,7 +41,7 @@ set_property(TARGET rickgl PROPERTY C_STANDARD 99)
 
 if (${CMAKE_SYSTEM_NAME} STREQUAL "Emscripten")
     set_target_properties(rickgl PROPERTIES OUTPUT_NAME "index")
-    set(CMAKE_EXECUTABLE_SUFFIX .html)
+    set(CMAKE_EXECUTABLE_SUFFIX .js)
 
     target_compile_options(rickgl
     PUBLIC "--use-port=contrib.glfw3")
@@ -57,7 +57,7 @@ if (${CMAKE_SYSTEM_NAME} STREQUAL "Emscripten")
     PUBLIC "-sSINGLE_FILE")
 
     set_target_properties(rickgl PROPERTIES
-        LINK_FLAGS "--embed-file ${CMAKE_SOURCE_DIR}/assets@/assets --shell-file ${CMAKE_SOURCE_DIR}/index.html"
+        LINK_FLAGS "--embed-file ${CMAKE_SOURCE_DIR}/assets@/assets"
     )
 
     target_link_libraries(rickgl PRIVATE assimp)

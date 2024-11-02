@@ -50,12 +50,18 @@ Model *icosphere;
 vec3 cameraPosition = {0, 0, -3.0f};
 vec3 cameraLookAt = {0, 0, 0};
 
+float nearZ = 1.0;
+float farZ = 300.0f;
+
 float yaw = 0.0f;
 float pitch = 45.0f;
 float fov = 45.0f;
-float distance = 50;
+const float minDistance = 10.0f;
+const float maxDistance = 75.0f;
+float distance = 50.0f;
 double lastxpos = 0;
 double lastypos = 0;
+int wireframe = 0;
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 
@@ -130,8 +136,7 @@ int main(void)
     shader_set_int(shader, "texture1", 0);
     shader_set_int(shader, "texture2", 1);
 
-    camera = init_camera(cameraPosition, cameraLookAt, fov, (float)SCR_WIDTH / (float)SCR_HEIGHT, 1.0, 100.0f);
-    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    camera = init_camera(cameraPosition, cameraLookAt, fov, (float)SCR_WIDTH / (float)SCR_HEIGHT, nearZ, farZ);
 
 #ifdef __EMSCRIPTEN__
     emscripten_set_main_loop(main_loop, 0, 1);
@@ -160,6 +165,16 @@ void draw_gui()
 
     if (nk_begin(context, "Settings", nk_rect(0, 0, 200, 200), NK_WINDOW_BORDER | NK_WINDOW_TITLE))
     {
+        nk_layout_row_static(context, 20, 150, 1);
+        if (nk_option_label(context, "Wireframe", wireframe))
+        {
+            wireframe = true;
+        }
+        else
+        {
+            wireframe = false;
+        }
+
         sprintf(GUI_TEXT_BUFFER, "Camera Yaw: %f", yaw);
         nk_layout_row_static(context, 20, 150, 1);
         nk_label(context, GUI_TEXT_BUFFER, NK_TEXT_LEFT);
@@ -168,14 +183,13 @@ void draw_gui()
         nk_layout_row_static(context, 20, 150, 1);
         nk_label(context, GUI_TEXT_BUFFER, NK_TEXT_LEFT);
 
-        sprintf(GUI_TEXT_BUFFER, "Camera Distance: %f", distance);
-        nk_layout_row_push(context, 150);
-        nk_label(context, GUI_TEXT_BUFFER, NK_TEXT_LEFT);
-
-        nk_layout_row_begin(context, NK_STATIC, 30, 2);
+        nk_layout_row_begin(context, NK_STATIC, 30, 1);
         {
+            sprintf(GUI_TEXT_BUFFER, "Camera Distance: %f", distance);
             nk_layout_row_push(context, 150);
-            nk_slider_float(context, 10.0f, &distance, 75.0f, 0.1f);
+            nk_label(context, GUI_TEXT_BUFFER, NK_TEXT_LEFT);
+            nk_layout_row_push(context, 150);
+            nk_slider_float(context, minDistance, &distance, maxDistance, 0.1f);
         }
         nk_layout_row_end(context);
 
@@ -214,12 +228,19 @@ void main_loop()
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // Set texture & shader
-    use_texture(texture1);
-    use_texture(texture2);
+    if (wireframe)
+    {
+        // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    }
+    else
+    {
+        // glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    }
 
     // Draw model
     use_shader(shader);
+    use_texture(texture1);
+    use_texture(texture2);
 
     shader_set_float(shader, "gTime", tickCount);
     shader_set_mat4(shader, "view", (float *)camera->view);
@@ -237,6 +258,7 @@ void main_loop()
     shader_set_mat4(shader, "model", (float *)car->transform);
     draw_model(car);
 
+    // glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     draw_gui();
 
     glfwSwapBuffers(window);
@@ -254,15 +276,8 @@ void framebuffer_size_callback(GLFWwindow *window, int width, int height)
 
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset)
 {
-    // distance += yoffset * 0.5f;
-    // if (distance < 2)
-    // {
-    //     distance = 2;
-    // }
-    // if (distance > 100)
-    // {
-    //     distance = 10;
-    // }
+    distance += yoffset * 0.5f;
+    distance = glm_min(maxDistance, glm_max(minDistance, distance));
 }
 
 void mouse_callback(GLFWwindow *window, double xposIn, double yposIn)

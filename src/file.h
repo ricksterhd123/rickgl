@@ -39,3 +39,19 @@ char *read_file(const char *path)
     }
     return NULL;
 }
+
+char* get_path_filename(const char *path)
+{
+    char* pfilename;
+    char *ssc = strstr(path, "/");
+
+    do
+    {
+        pfilename = ssc + 1;
+        ssc = strstr(pfilename, "/");
+    } while (ssc != NULL);
+
+    char* filename = (char*) malloc(sizeof(char) * (strlen(pfilename) + 1));
+    strcpy(filename, pfilename);
+    return filename;
+}
