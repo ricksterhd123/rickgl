@@ -113,9 +113,9 @@ int main(void)
 
     /////////////////////////////////////////
 
-    torus = init_model("assets/Car.obj", 0, 0, 0);
-    cube = init_model("assets/cube.obj", 2, 0, 0);
-    icosphere = init_model("assets/icosphere.obj", -2, 0, 0);
+    torus = init_model("assets/models/Car.obj", 0, 0, 0);
+    cube = init_model("assets/models/cube.obj", 2, 0, 0);
+    icosphere = init_model("assets/models/icosphere.obj", -2, 0, 0);
 
     /////////////////////////////////////////
 
