@@ -121,20 +121,20 @@ int main(void)
     /////////////////////////////////////////
 
     map = init_model("assets/models/map.obj", 0, 0, 0);
-    car = init_model("assets/models/Car.obj", 0, 1, 0);
+    car = init_model("assets/models/car.obj", 0, 1, 0);
     cube = init_model("assets/models/cube.obj", 2, 1, 0);
     icosphere = init_model("assets/models/icosphere.obj", -2, 1, 0);
 
     /////////////////////////////////////////
 
-    texture1 = load_texture_2d("assets/textures/brickwall.jpg", GL_TEXTURE0);
-    texture2 = load_texture_2d("assets/textures/wall.jpg", GL_TEXTURE1);
+    texture1 = init_texture_2d("assets/textures/dummy.jpg", GL_TEXTURE0);
+    // texture2 = init_texture_2d("assets/textures/wall.jpg", GL_TEXTURE1);
 
     /////////////////////////////////////////
 
-    use_shader(shader);
-    shader_set_int(shader, "texture1", 0);
-    shader_set_int(shader, "texture2", 1);
+    // use_shader(shader);
+    // shader_set_int(shader, "texture1", 0);
+    // shader_set_int(shader, "texture2", 1);
 
     camera = init_camera(cameraPosition, cameraLookAt, fov, (float)SCR_WIDTH / (float)SCR_HEIGHT, nearZ, farZ);
 
@@ -240,7 +240,7 @@ void main_loop()
     // Draw model
     use_shader(shader);
     use_texture(texture1);
-    use_texture(texture2);
+    // use_texture(texture2);
 
     shader_set_float(shader, "gTime", tickCount);
     shader_set_mat4(shader, "view", (float *)camera->view);

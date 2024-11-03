@@ -11,6 +11,7 @@
         "cglm.h": "c",
         "nuklear.h": "c",
         "regex": "c",
-        "sstream": "c"
+        "sstream": "c",
+        "stb_image.h": "c"
     }
 }

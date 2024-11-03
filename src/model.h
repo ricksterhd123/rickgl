@@ -4,19 +4,25 @@
 #include <assimp/mesh.h>
 #include <stdio.h>
 
+#include "texture.h"
+
 typedef struct Mesh
 {
     unsigned int VAO;
     unsigned int VBO;
     unsigned int EBO;
 
+    Texture *texture;
     unsigned int nIndices;
 } Mesh;
 
-struct aiMaterialProperty* get_material_property(struct aiMaterial *material, const char* name) {
-    for (int i = 0; i < material->mNumProperties; i++) {
-        const char* propertyName = material->mProperties[i]->mKey.data;
-        if (strcmp(name, propertyName) == 0) {
+struct aiMaterialProperty *get_material_property(struct aiMaterial *material, const char *name)
+{
+    for (int i = 0; i < material->mNumProperties; i++)
+    {
+        const char *propertyName = material->mProperties[i]->mKey.data;
+        if (strcmp(name, propertyName) == 0)
+        {
             return material->mProperties[i];
         }
     }
@@ -25,12 +31,16 @@ struct aiMaterialProperty* get_material_property(struct aiMaterial *material, co
 
 Mesh *init_mesh(struct aiMesh *mesh_in, struct aiMaterial *material_in)
 {
-    printf("%s\n", mesh_in->mName.data);
-    for (int i = 0; i < material_in->mNumProperties; i++) {
-        printf("\t%s, %d, %d\n", material_in->mProperties[i]->mKey.data, (int) material_in->mProperties[i]->mType, material_in->mProperties[i]->mDataLength);
-    }
+    // struct aiMaterialProperty* material_name = get_material_property(material_in, "?mat.name");
+    // struct aiString* material_name_str = (struct aiString *) material_name->mData;
+    // printf("%s\n", material_name_str->data);
+    // for (int i = 0; i < material_in->mNumProperties; i++)
+    // {
+    //     printf("\t%s, %d, %d\n", material_in->mProperties[i]->mKey.data, (int)material_in->mProperties[i]->mType, material_in->mProperties[i]->mDataLength);
+    // }
 
-    Mesh* mesh = (Mesh*) malloc(sizeof(Mesh));
+    Mesh *mesh = (Mesh *)malloc(sizeof(Mesh));
+    mesh->texture = NULL;
 
     const int attributesPerVertex = 12;
     unsigned int indicesPerFace = mesh_in->mFaces[0].mNumIndices;
@@ -50,17 +60,30 @@ Mesh *init_mesh(struct aiMesh *mesh_in, struct aiMaterial *material_in)
         fprintf(stderr, "Failed to load vertex data\n");
     }
 
+    struct aiMaterialProperty *diffuse = get_material_property(material_in, "$clr.diffuse");
+    if (diffuse == NULL)
+    {
+        fprintf(stderr, "Failed to load colors\n");
+    }
+    float *diffuseColors = (float *)diffuse->mData;
+
+    struct aiMaterialProperty *texture = get_material_property(material_in, "$tex.file");
+    if (texture != NULL)
+    {
+        struct aiString *texture_file = (struct aiString *)texture->mData;
+        mesh->texture = init_texture_2d(texture_file->data, GL_TEXTURE0);
+        fprintf(stdout, "Loaded texture from mesh %s file %s\n", mesh_in->mName.data, texture_file->data);
+    }
+    else
+    {
+        mesh->texture = init_texture_2d("assets/textures/dummy.jpg", GL_TEXTURE0);
+        // fprintf(stdout, "Warning: Failed to load texture from mesh %s\n", mesh_in->mName.data);
+    }
+
     for (unsigned int i = 0; i < mesh_in->mNumVertices; i++)
     {
         struct aiVector3D vertex = mesh_in->mVertices[i];
         struct aiVector3D normal = mesh_in->mNormals[i];
-
-        struct aiMaterialProperty* diffuse = get_material_property(material_in, "$clr.diffuse");
-        if (diffuse == NULL) {
-            fprintf(stderr, "Failed to load colors\n");
-        }
-
-        float* diffuseColors = (float*) diffuse->mData;
         struct aiVector3D texCoord = mesh_in->mTextureCoords[0] ? mesh_in->mTextureCoords[0][i] : (struct aiVector3D){0.0f, 0.0f, 0.0f};
 
         vertices[attributesPerVertex * i + 0] = vertex.x;
@@ -141,15 +164,26 @@ Mesh *init_mesh(struct aiMesh *mesh_in, struct aiMaterial *material_in)
 
 void draw_mesh(Mesh *mesh)
 {
+    if (mesh->texture != NULL)
+    {
+        use_texture(mesh->texture);
+    }
+
     glBindVertexArray(mesh->VAO);
     glDrawElements(GL_TRIANGLES, mesh->nIndices, GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
+
+    if (mesh->texture != NULL)
+    {
+        clear_texture();
+    }
 }
 
 void destroy_mesh(Mesh *mesh)
 {
     glDeleteVertexArrays(1, &mesh->VAO);
     glDeleteBuffers(1, &mesh->VBO);
+    free(mesh->texture);
     free(mesh);
 }
 
@@ -181,15 +215,18 @@ Model *init_model(const char *path, float x, float y, float z)
     if (scene->mNumMeshes > 0)
     {
         model->nMeshes = scene->mNumMeshes;
-        model->meshes = (Mesh**) malloc(sizeof(Mesh*) * scene->mNumMeshes);
+        model->meshes = (Mesh **)malloc(sizeof(Mesh *) * scene->mNumMeshes);
 
-        for (int i = 0; i < scene->mNumMeshes; i++) {
+        for (int i = 0; i < scene->mNumMeshes; i++)
+        {
             struct aiMesh *mesh = scene->mMeshes[i];
-            struct aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
+            struct aiMaterial *material = scene->mMaterials[mesh->mMaterialIndex];
 
             model->meshes[i] = init_mesh(mesh, material);
         }
-    } else {
+    }
+    else
+    {
         fprintf(stderr, "Model %s has no mesh", path);
     }
 
@@ -198,15 +235,18 @@ Model *init_model(const char *path, float x, float y, float z)
     return model;
 }
 
-void draw_model(Model* model)
+void draw_model(Model *model)
 {
-    for (int i = 0; i < model->nMeshes; i++) {
+    for (int i = 0; i < model->nMeshes; i++)
+    {
         draw_mesh(model->meshes[i]);
     }
 }
 
-void destroy_model(Model* model) {
-    for (int i = 0; i < model->nMeshes; i++) {
+void destroy_model(Model *model)
+{
+    for (int i = 0; i < model->nMeshes; i++)
+    {
         destroy_mesh(model->meshes[i]);
     }
 
