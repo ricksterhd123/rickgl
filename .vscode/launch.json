@@ -5,11 +5,12 @@
             "type": "node",
             "request": "launch",
             "name": "Launch HTTP Server",
-            "runtimeExecutable": "npx",
+            "runtimeExecutable": "npm",
             "args": [
-                "http-server",
-                "build",
-                "-p", "3000"
+                "run",
+                "dev",
+                "--prefix",
+                "webgl"
             ],
             "console": "integratedTerminal"
         }

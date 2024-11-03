@@ -8,5 +8,4 @@ popd
 
 pushd webgl
 cp ../build/index.js public
-npm run dev
 popd
