@@ -183,7 +183,10 @@ void destroy_mesh(Mesh *mesh)
 {
     glDeleteVertexArrays(1, &mesh->VAO);
     glDeleteBuffers(1, &mesh->VBO);
-    free(mesh->texture);
+    if (mesh->texture != NULL)
+    {
+        destroy_texture(mesh->texture);
+    }
     free(mesh);
 }
 

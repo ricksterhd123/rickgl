@@ -8,9 +8,8 @@ https://rickgl.vercel.app/
 # install emscripten
 # (see https://emscripten.org/docs/getting_started/downloads.html or Dockerfile)
 bash build-wasm.sh
-cd build
-python3 -m http.server
-# go to http://127.0.0.1:8000/rickgl.html
+cd webgl
+npm run dev
 ```
 
 ## Compile for linux x86_64

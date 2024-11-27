@@ -38,7 +38,7 @@ Camera* init_camera(vec3 position, vec3 lookAt, float fovy, float aspect, float 
 
     camera->projection = (mat4*) malloc(sizeof(mat4));
     camera->view = (mat4*) malloc(sizeof(mat4));
-
+    
     glm_mat4_identity((vec4*) camera->projection);
     glm_mat4_identity((vec4*) camera->view);
 
@@ -51,4 +51,11 @@ Camera* init_camera(vec3 position, vec3 lookAt, float fovy, float aspect, float 
     set_camera_view(camera, position, lookAt);
 
     return camera;
+}
+
+void destroy_camera(Camera* camera)
+{
+    free(camera->projection);
+    free(camera->view);
+    free(camera);
 }

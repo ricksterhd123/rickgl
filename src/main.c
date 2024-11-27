@@ -32,44 +32,57 @@
 
 const unsigned int SCR_WIDTH = 1280;
 const unsigned int SCR_HEIGHT = 720;
+const float FPS = 30.0f;
 
 struct nk_glfw glfw;
 struct nk_context *context;
 
 GLFWwindow *window;
 Shader *shader;
-Texture *texture1;
-Texture *texture2;
 Camera *camera;
-
 Model *cube;
-Model *car;
-Model *map;
-Model *icosphere;
 
-vec3 cameraPosition = {0, 0, -3.0f};
+vec3 cameraPosition = {0, 0, -3};
 vec3 cameraLookAt = {0, 0, 0};
+vec3 lightColor = {1, 1, 1};
+vec3 lightPos = {0, 100, 0};
 
 float nearZ = 1.0;
 float farZ = 300.0f;
-
 float yaw = 0.0f;
 float pitch = 45.0f;
 float fov = 45.0f;
-const float minDistance = 10.0f;
+const float minDistance = 5.0f;
 const float maxDistance = 75.0f;
-float distance = 50.0f;
+float distance = 10.0f;
 double lastxpos = 0;
 double lastypos = 0;
 int wireframe = 0;
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
-
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
 void mouse_callback(GLFWwindow *window, double xposIn, double yposIn);
-void process_input(GLFWwindow *window);
+void input();
+void update();
 void draw_gui();
+void draw();
 void main_loop();
+
+static float lastTick = 0;
+static float deltaTime = 0;
+void main_loop()
+{
+    float tickCount = get_tick_count();
+    deltaTime = tickCount - lastTick;
+
+    if (deltaTime > 1000 / FPS)
+    {
+        input();
+        update();
+        draw();
+        lastTick = tickCount;
+    }
+}
 
 int main(void)
 {
@@ -120,22 +133,7 @@ int main(void)
 
     /////////////////////////////////////////
 
-    map = init_model("assets/models/map.obj", 0, 0, 0);
-    car = init_model("assets/models/car.obj", 0, 1, 0);
     cube = init_model("assets/models/cube.obj", 2, 1, 0);
-    icosphere = init_model("assets/models/icosphere.obj", -2, 1, 0);
-
-    /////////////////////////////////////////
-
-    texture1 = init_texture_2d("assets/textures/dummy.jpg", GL_TEXTURE0);
-    // texture2 = init_texture_2d("assets/textures/wall.jpg", GL_TEXTURE1);
-
-    /////////////////////////////////////////
-
-    // use_shader(shader);
-    // shader_set_int(shader, "texture1", 0);
-    // shader_set_int(shader, "texture2", 1);
-
     camera = init_camera(cameraPosition, cameraLookAt, fov, (float)SCR_WIDTH / (float)SCR_HEIGHT, nearZ, farZ);
 
 #ifdef __EMSCRIPTEN__
@@ -147,15 +145,82 @@ int main(void)
     }
 #endif
 
-    destroy_model(map);
     destroy_model(cube);
-    destroy_model(icosphere);
-    destroy_model(car);
     destroy_shader(shader);
+    destroy_camera(camera);
+
     nk_glfw3_shutdown(&glfw);
 
     glfwTerminate();
     return 0;
+}
+
+void framebuffer_size_callback(GLFWwindow *window, int width, int height)
+{
+    glViewport(0, 0, width, height);
+    if (camera != NULL)
+    {
+        camera->aspect = (float)width / (float)height;
+    }
+}
+
+void scroll_callback(GLFWwindow *window, double xoffset, double yoffset)
+{
+    distance += yoffset * 100.0f * (deltaTime / 1000);
+    distance = glm_min(maxDistance, glm_max(minDistance, distance));
+}
+
+void mouse_callback(GLFWwindow *window, double xposIn, double yposIn)
+{
+    // double xpos = xposIn - lastxpos;
+    // double ypos = yposIn - lastypos;
+    // double sensitivity = 0.5;
+    // yaw += xpos * sensitivity;
+    // pitch += ypos * sensitivity;
+    // lastxpos = xposIn;
+    // lastypos = yposIn;
+}
+
+void input()
+{
+    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+        glfwSetWindowShouldClose(window, 1);
+    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+        pitch += 180 * (deltaTime / 1000);
+    if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+        pitch -= 180 * (deltaTime / 1000);
+    if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
+        yaw += 180 * (deltaTime / 1000);
+    if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
+        yaw -= 180 * (deltaTime / 1000);
+}
+
+void update()
+{
+    // yaw += 90.0f * (deltaTime / 1000);
+
+    if (yaw > 360)
+    {
+        yaw = 0;
+    }
+    if (yaw < -360)
+    {
+        yaw = 0;
+    }
+
+    if (pitch > 179.0f)
+    {
+        pitch = 179.0f;
+    }
+    if (pitch < 0.1f)
+    {
+        pitch = 0.1;
+    }
+
+    // Update camera position
+    vec3 offset = {distance * cos(glm_rad(yaw)) * sin(glm_rad(pitch)), distance * cos(glm_rad(pitch)), distance * sin(glm_rad(yaw)) * sin(glm_rad(pitch))};
+    set_camera_view(camera, offset, cameraLookAt);
+    update_camera(camera);
 }
 
 static char GUI_TEXT_BUFFER[256];
@@ -165,6 +230,7 @@ void draw_gui()
 
     if (nk_begin(context, "Settings", nk_rect(0, 0, 200, 200), NK_WINDOW_BORDER | NK_WINDOW_TITLE))
     {
+#ifndef __EMSCRIPTEN__
         nk_layout_row_static(context, 20, 150, 1);
         if (nk_option_label(context, "Wireframe", wireframe))
         {
@@ -174,6 +240,11 @@ void draw_gui()
         {
             wireframe = false;
         }
+#endif
+
+        sprintf(GUI_TEXT_BUFFER, "FPS: %f", 1000 / deltaTime);
+        nk_layout_row_static(context, 20, 150, 1);
+        nk_label(context, GUI_TEXT_BUFFER, NK_TEXT_LEFT);
 
         sprintf(GUI_TEXT_BUFFER, "Camera Yaw: %f", yaw);
         nk_layout_row_static(context, 20, 150, 1);
@@ -198,109 +269,39 @@ void draw_gui()
     nk_glfw3_render(&glfw, NK_ANTI_ALIASING_ON, MAX_VERTEX_BUFFER, MAX_ELEMENT_BUFFER);
 }
 
-void main_loop()
+void draw()
 {
-    float tickCount = get_tick_count();
-    yaw += 0.1f;
-    if (yaw > 360)
-    {
-        yaw = 0;
-    }
-
-    if (pitch > 179.0f)
-    {
-        pitch = 179.0f;
-    }
-    if (pitch < 0.1f)
-    {
-        pitch = 0.1;
-    }
-
-    // Update camera position
-    vec3 offset = {distance * cos(glm_rad(yaw)) * sin(glm_rad(pitch)), distance * cos(glm_rad(pitch)), distance * sin(glm_rad(yaw)) * sin(glm_rad(pitch))};
-    set_camera_view(camera, offset, cameraLookAt);
-    update_camera(camera);
-
-    // Process input
-    process_input(window);
-
-    // Clear scene
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+#ifndef __EMSCRIPTEN__
     if (wireframe)
     {
-        // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     }
     else
     {
-        // glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     }
+#endif
 
+    vec3* viewPosition = get_camera_position(camera);
     // Draw model
     use_shader(shader);
-    use_texture(texture1);
-    // use_texture(texture2);
-
-    shader_set_float(shader, "gTime", tickCount);
     shader_set_mat4(shader, "view", (float *)camera->view);
     shader_set_mat4(shader, "projection", (float *)camera->projection);
-
-    shader_set_mat4(shader, "model", (float *)map->transform);
-    draw_model(map);
-
     shader_set_mat4(shader, "model", (float *)cube->transform);
+    shader_set_vec3(shader, "lightColor", lightColor);
+    shader_set_vec3(shader, "lightPos", lightPos);
+    shader_set_vec3(shader, "viewPos", *viewPosition);
+    shader_set_float(shader, "gTime", get_tick_count());
     draw_model(cube);
 
-    shader_set_mat4(shader, "model", (float *)icosphere->transform);
-    draw_model(icosphere);
+#ifndef __EMSCRIPTEN__
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+#endif
 
-    shader_set_mat4(shader, "model", (float *)car->transform);
-    draw_model(car);
-
-    // glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     draw_gui();
 
     glfwSwapBuffers(window);
     glfwPollEvents();
-}
-
-void framebuffer_size_callback(GLFWwindow *window, int width, int height)
-{
-    glViewport(0, 0, width, height);
-    if (camera != NULL)
-    {
-        camera->aspect = (float)width / (float)height;
-    }
-}
-
-void scroll_callback(GLFWwindow *window, double xoffset, double yoffset)
-{
-    distance += yoffset * 0.5f;
-    distance = glm_min(maxDistance, glm_max(minDistance, distance));
-}
-
-void mouse_callback(GLFWwindow *window, double xposIn, double yposIn)
-{
-    // double xpos = xposIn - lastxpos;
-    // double ypos = yposIn - lastypos;
-    // double sensitivity = 0.5;
-    // yaw += xpos * sensitivity;
-    // pitch += ypos * sensitivity;
-    // lastxpos = xposIn;
-    // lastypos = yposIn;
-}
-
-void process_input(GLFWwindow *window)
-{
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-        glfwSetWindowShouldClose(window, 1);
-    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
-        pitch += 5;
-    if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
-        pitch -= 5;
-    if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
-        yaw += 5;
-    if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
-        yaw -= 5;
 }

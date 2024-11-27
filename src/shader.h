@@ -15,12 +15,14 @@ unsigned int load_shader_from_file(const char *path, int shader_type)
     int success;
     char infoLog[512];
 
-    const char *source = read_file(path);
+    char *source = read_file(path);
 
     unsigned int shader = glCreateShader(shader_type);
-    glShaderSource(shader, 1, &source, NULL);
+    glShaderSource(shader, 1, (const char**) &source, NULL);
     glCompileShader(shader);
     glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
+
+    free(source);
 
     if (!success)
     {
@@ -95,6 +97,10 @@ void shader_set_bool(Shader *shader, const char *name, const int value)
 void shader_set_float(Shader *shader, const char *name, const float value)
 {
     glUniform1f(glGetUniformLocation(shader->id, name), value);
+}
+
+void shader_set_vec3(Shader *shader, const char *name, const GLfloat *value) {
+    glUniform3fv(glGetUniformLocation(shader->id, name), 1, value);
 }
 
 void shader_set_mat4(Shader *shader, const char *name, const GLfloat *value) {

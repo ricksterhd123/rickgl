@@ -55,6 +55,12 @@ Texture *init_texture_2d(const char *path, GLenum index)
     return texture;
 }
 
+void destroy_texture(Texture *texture)
+{
+    glDeleteTextures(1, &texture->id);
+    free(texture);
+}
+
 void use_texture(Texture *texture)
 {
     glActiveTexture(texture->index);
